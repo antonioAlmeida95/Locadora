@@ -1,4 +1,5 @@
-﻿using Graphql.Loja.InputsTypes;
+﻿using System.Collections.Generic;
+using Graphql.Loja.InputsTypes;
 using Graphql.Loja.Model;
 using Graphql.Loja.Persistencia;
 using Graphql.Loja.QueryInputType;
@@ -7,19 +8,24 @@ using GraphQL.Types;
 
 namespace Graphql.Loja.QueryTypes
 {
-    public class CarroQuery : ObjectGraphType<object>
+    public class CarroQuery : ObjectGraphType, IQuery
     {
+        private LocadouraDAO _locadouraDao; 
+
         public CarroQuery(LocadouraDAO dataDao)
         {
-            Name = "QueryCarro";
+            _locadouraDao = dataDao;
+        }
 
-            Field<CarroType>(name: "carro",
+        public IEnumerable<FieldType> GetFields()
+        {
+            yield return Field<CarroType>(name: "carro",
                 arguments: new QueryArguments(new QueryArgument<NonNullGraphType<CarroQueryInput>>
-                    {Name = nameof(CarroQueryInput)}),
-                resolve: ctx => dataDao.GetCarroById(ctx.GetArgument<Carro>(nameof(Carro).ToLower())));
+                    { Name = nameof(CarroQueryInput) }),
+                resolve: ctx => _locadouraDao.GetCarroById(ctx.GetArgument<Carro>(nameof(Carro).ToLower())));
 
-            Field<ListGraphType<CarroType>>(name: "carros",
-                resolve: ctx => dataDao.GetCarros());
+            yield return Field<ListGraphType<CarroType>>(name: "carros",
+                resolve: ctx => _locadouraDao.GetCarros());
         }
     }
 }

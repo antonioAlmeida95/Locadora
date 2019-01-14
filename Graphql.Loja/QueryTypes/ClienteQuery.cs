@@ -1,4 +1,5 @@
-﻿using Graphql.Loja.InputsTypes;
+﻿using System.Collections.Generic;
+using Graphql.Loja.InputsTypes;
 using Graphql.Loja.Model;
 using Graphql.Loja.Persistencia;
 using Graphql.Loja.QueryInputType;
@@ -7,18 +8,27 @@ using GraphQL.Types;
 
 namespace Graphql.Loja.QueryTypes
 {
-    public class ClienteQuery : ObjectGraphType<object>
+    public class ClienteQuery : ObjectGraphType, IQuery
     {
+        private LocadouraDAO _locadouraDao;
+
         public ClienteQuery(LocadouraDAO dataDao)
         {
-            Name = "QueryCliente";
+            _locadouraDao = dataDao;
+        }
 
-            Field<ClienteType>(name: "cliente",
+        public IEnumerable<FieldType> GetFields()
+        {
+            yield return Field<ClienteType>(
+                name: "cliente",
                 arguments: new QueryArguments(new QueryArgument<NonNullGraphType<ClienteQueryInput>>
                     {Name = nameof(Cliente), Description = "cliente a inserir"}),
-                resolve: ctx => dataDao.GetClienteById(ctx.GetArgument<Cliente>(nameof(Cliente).ToLower())));
+                resolve: ctx => _locadouraDao.GetClienteById(ctx.GetArgument<Cliente>(nameof(Cliente).ToLower()))
+            );
 
-            Field<ListGraphType<ClienteType>>(name: "clientes", resolve: ctx => dataDao.GetClientes());
+            yield return Field<ListGraphType<ClienteType>>(
+                name: "clientes", resolve: ctx => _locadouraDao.GetClientes()
+            );
         }
     }
 }

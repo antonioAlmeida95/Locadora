@@ -1,4 +1,5 @@
-﻿using Graphql.Loja.InputsTypes;
+﻿using System.Collections.Generic;
+using Graphql.Loja.InputsTypes;
 using Graphql.Loja.Model;
 using Graphql.Loja.Persistencia;
 using Graphql.Loja.Types;
@@ -6,13 +7,18 @@ using GraphQL.Types;
 
 namespace Graphql.Loja.Mutation
 {
-    public class ClienteMutation: ObjectGraphType
+    public class ClienteMutation: ObjectGraphType, IMutation
     {
+        private LocadouraDAO _locadouraDao;
+
         public ClienteMutation(LocadouraDAO dataDao)
         {
-            Name = "MutationCliente";
+            _locadouraDao = dataDao;
+        }
 
-            Field<ClienteType>(
+        public IEnumerable<FieldType> GetFields()
+        {
+            yield return Field<ClienteType>(
                 "createCliente",
                 arguments: new QueryArguments(
                     new QueryArgument<NonNullGraphType<ClienteInputType>> { Name = "cliente" }
@@ -20,9 +26,8 @@ namespace Graphql.Loja.Mutation
                 resolve: context =>
                 {
                     var cliente = context.GetArgument<Cliente>("cliente");
-                    return dataDao.AddCliente(cliente);
+                    return _locadouraDao.AddCliente(cliente);
                 });
-
         }
     }
 }

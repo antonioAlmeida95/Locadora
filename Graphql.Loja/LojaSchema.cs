@@ -7,16 +7,10 @@ namespace Graphql.Loja
 {
     public class LojaSchema : Schema
     {
-        public LojaSchema(IDependencyResolver resolver)
-            : base(resolver)
+        public LojaSchema(IDependencyResolver resolver) : base(resolver)
         {
-            Query = resolver.Resolve<ClienteQuery>();
-            //Query = resolver.Resolve<CarroQuery>();
-            //Query = resolver.Resolve<EnderecoQuery>();
-            
-            Mutation = resolver.Resolve<ClienteMutation>();
-            //Mutation = resolver.Resolve<CarroMutation>();
-            //Mutation = resolver.Resolve<EnderecoMutation>();
+            Query = resolver.Resolve<RootQuery>();
+            Mutation = resolver.Resolve<RootMutation>();
         }
     }
 }

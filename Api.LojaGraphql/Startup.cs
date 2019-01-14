@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Reflection;
+using Autofac;
+using Autofac.Extensions.DependencyInjection;
 using Graphql.Loja;
 using Graphql.Loja.InputsTypes;
 using Graphql.Loja.Mutation;
@@ -10,12 +10,12 @@ using Graphql.Loja.QueryInputType;
 using Graphql.Loja.QueryTypes;
 using Graphql.Loja.Types;
 using GraphQL;
+using GraphQL.DataLoader;
 using GraphQL.Http;
-using GraphQL.Server;
 using GraphQL.Types;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -23,55 +23,61 @@ namespace Api.LojaGraphql
 {
     public class Startup
     {
-        public void ConfigureServices(IServiceCollection services)
+        public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IDependencyResolver>(s => new FuncDependencyResolver(s.GetRequiredService));
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
-            services.AddSingleton<IDocumentExecuter, DocumentExecuter>();
-            services.AddSingleton<IDocumentWriter, DocumentWriter>();
+            var builder = new ContainerBuilder();
 
-            services.AddSingleton<LocadouraDAO>();
+            builder.RegisterInstance(new DocumentExecuter()).As<IDocumentExecuter>();
+            builder.RegisterInstance(new DocumentWriter()).As<IDocumentWriter>();
 
-            services.AddSingleton<ClienteQuery>();
-            services.AddSingleton<ClienteMutation>();
-            services.AddSingleton<ClienteType>();
-            services.AddSingleton<ClienteInputType>();
-            services.AddSingleton<ClienteQueryInput>();
+            services.AddSingleton<IDataLoaderContextAccessor, DataLoaderContextAccessor>();
+            services.AddSingleton<DataLoaderDocumentListener>();
 
-            services.AddSingleton<CarroQuery>();
-            services.AddSingleton<CarroMutation>();
-            services.AddSingleton<CarroType>();
-            services.AddSingleton<CarroInputType>();
-            services.AddSingleton<CarroQueryInput>();
+            builder.RegisterType<LojaSchema>().As<ISchema>();
 
-            services.AddSingleton<LocacoesInputType>();
-            services.AddSingleton<LocacoesType>();
-            
-            services.AddSingleton<ISchema, LojaSchema>();
+            builder.RegisterType<RootQuery>().AsSelf();
+            builder.RegisterType<RootMutation>().AsSelf();
 
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
-            services.AddGraphQL(_ =>
+            builder.Register<IDependencyResolver>(c =>
             {
-                _.EnableMetrics = true;
-                _.ExposeExceptions = true;
-            })
-            .AddUserContextBuilder(httpContext => new GraphQLUserContext { User = httpContext.User });
+                var context = c.Resolve<IComponentContext>();
+                return new FuncDependencyResolver(type => context.Resolve(type));
+            });
+
+            builder.RegisterType<LocadouraDAO>().AsSelf();
+
+            var graphQlCoreClienteType = typeof(ClienteType).GetTypeInfo();
+            var graphQlCoreClienteInputType = typeof(ClienteInputType).GetTypeInfo();
+            var graphQlCoreClienteQueryType = typeof(ClienteQueryInput).GetTypeInfo();
+
+            builder.RegisterAssemblyTypes(graphQlCoreClienteType.Assembly)
+                .Where(t => t.IsClass && t.Namespace == graphQlCoreClienteType.Namespace)
+                .AsSelf();
+
+            builder.RegisterAssemblyTypes(graphQlCoreClienteInputType.Assembly)
+                .Where(t => t.IsClass && t.Namespace == graphQlCoreClienteInputType.Namespace)
+                .AsSelf();
+            
+            builder.RegisterAssemblyTypes(graphQlCoreClienteQueryType.Assembly)
+                .Where(t => t.IsClass && t.Namespace == graphQlCoreClienteQueryType.Namespace)
+                .AsSelf();
+
+            builder.Populate(services);
+            var container = builder.Build();
+            return container.Resolve<IServiceProvider>();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddConsole();
             app.UseDeveloperExceptionPage();
 
-            // add http for Schema at default url /graphql
-            app.UseGraphQL<ISchema>("/graphql");
+            app.UseHttpsRedirection();
 
-            /*// use graphql-playground at default url /ui/playground
-            app.UseGraphQLPlayground(new GraphQLPlaygroundOptions
-            {
-                Path = "/ui/playground"
-            });*/
+            app.UseStaticFiles();
+
+            app.UseMvc();
         }
     }
 }
