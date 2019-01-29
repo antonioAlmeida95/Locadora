@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Graphql.Loja.Persistencia
 {
-    public class LocadouraContext: DbContext
+    public class LocadoraContext: DbContext
     {
         public DbSet<Cliente> Clientes { get; set; }
         public DbSet<Carro> Carros { get; set; }

@@ -9,9 +9,9 @@ namespace Graphql.Loja.Mutation
 {
     public class ClienteMutation: ObjectGraphType, IMutation
     {
-        private LocadouraDAO _locadouraDao;
+        private LocadoraDAO _locadouraDao;
 
-        public ClienteMutation(LocadouraDAO dataDao)
+        public ClienteMutation(LocadoraDAO dataDao)
         {
             _locadouraDao = dataDao;
         }

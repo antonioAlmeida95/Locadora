@@ -6,13 +6,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Graphql.Loja.Persistencia
 {
-    public class LocadouraDAO: IDisposable
+    public class LocadoraDAO: IDisposable
     {
-        private LocadouraContext _context;
+        private LocadoraContext _context;
 
-        public LocadouraDAO()
+        public LocadoraDAO()
         {
-            _context = new LocadouraContext();
+            _context = new LocadoraContext();
         }
 
         public Cliente AddCliente(Cliente cliente)

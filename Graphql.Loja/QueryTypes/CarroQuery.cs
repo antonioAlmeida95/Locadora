@@ -10,9 +10,9 @@ namespace Graphql.Loja.QueryTypes
 {
     public class CarroQuery : ObjectGraphType, IQuery
     {
-        private LocadouraDAO _locadouraDao; 
+        private LocadoraDAO _locadouraDao; 
 
-        public CarroQuery(LocadouraDAO dataDao)
+        public CarroQuery(LocadoraDAO dataDao)
         {
             _locadouraDao = dataDao;
         }

@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Graphql.Loja.Migrations
 {
-    [DbContext(typeof(LocadouraContext))]
+    [DbContext(typeof(LocadoraContext))]
     [Migration("20190111134313_Inicial")]
     partial class Inicial
     {

@@ -46,7 +46,7 @@ namespace Api.LojaGraphql
                 return new FuncDependencyResolver(type => context.Resolve(type));
             });
 
-            builder.RegisterType<LocadouraDAO>().AsSelf();
+            builder.RegisterType<LocadoraDAO>().AsSelf();
 
             var graphQlCoreClienteType = typeof(ClienteType).GetTypeInfo();
             var graphQlCoreClienteInputType = typeof(ClienteInputType).GetTypeInfo();
